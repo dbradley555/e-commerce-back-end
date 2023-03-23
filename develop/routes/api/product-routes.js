@@ -9,7 +9,7 @@ router.get('/', async (req, res) => {
   try {
     const productData = await Product.findAll({
       // be sure to include its associated Category and Tag data
-      include: [{ model: Category }, { model: Tag }],
+      include: { all: true, nested: true },
     });
     res.status(200).json(productData);
   } catch (err) {
@@ -23,7 +23,7 @@ router.get('/:id', async (req, res) => {
   try {
     const productData = await Product.findByPk(req.params.id, {
       // be sure to include its associated Category and Tag data
-      include: [{ model: Category }, { model: Tag }],
+      include: { all: true, nested: true },
     });
 
     if (!productData) {
@@ -72,14 +72,21 @@ router.post('/', (req, res) => {
 // update product
 router.put('/:id', (req, res) => {
   // update product data
-  Product.update(req.body, {
-    where: {
-      id: req.params.id,
+  Product.update(
+    {
+      product_name: req.body.product_name,
+      price: req.body.price,
+      stock: req.body.stock,
     },
-  })
+    {
+      where: {
+        id: req.params.id,
+      },
+    }
+  )
     .then((product) => {
       // find all associated tags from ProductTag
-      return ProductTag.findAll({ where: { product_id: req.params.id } });
+      res.json(product);
     })
     .then((productTags) => {
       // get list of current tag_ids
